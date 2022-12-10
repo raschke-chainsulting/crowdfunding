@@ -1,12 +1,12 @@
 # Crowdfunding
 
-
+*Lars Raschke*
 
 > Crowdfunding
 
 This contract implements a crowdfunding platform. It allows users to create crowdfunding projects and participate to them. The owner of a project can withdraw the funds of the project.
 
-
+*Complete source code: https://github.com/raschke-chainsulting/crowdfunding*
 
 ## Methods
 

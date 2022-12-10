@@ -1,7 +1,8 @@
 {
-  "name": "dapp-contracts-template",
+  "name": "crowdfunding",
   "version": "1.0.0",
-  "description": "",
+  "description": "Simple crowdfunding contract",
+  "url": "https://github.com/raschke-chainsulting/crowdfunding",
   "main": "index.js",
   "scripts": {
     "test": "REPORT_GAS=true hardhat test",

@@ -4,6 +4,8 @@ pragma solidity 0.8.7;
 
 /**
  * @title ICrowdfunding
+ * @author Lars Raschke
+ * @dev Complete source code: https://github.com/raschke-chainsulting/crowdfunding
  * @notice This interface defines the functions, structs and events that are
  * used and implemented by the Crowdfunding contract.
  */

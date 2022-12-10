@@ -6,6 +6,8 @@ import {ICrowdfunding} from "./ICrowdfunding.sol";
 
 /**
  * @title Crowdfunding
+ * @author Lars Raschke
+ * @dev Complete source code: https://github.com/raschke-chainsulting/crowdfunding
  * @notice This contract implements a crowdfunding platform. It allows users to
  * create crowdfunding projects and participate to them. The owner of a project
  * can withdraw the funds of the project.

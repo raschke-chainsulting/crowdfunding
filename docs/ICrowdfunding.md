@@ -1,12 +1,12 @@
 # ICrowdfunding
 
-
+*Lars Raschke*
 
 > ICrowdfunding
 
 This interface defines the functions, structs and events that are used and implemented by the Crowdfunding contract.
 
-
+*Complete source code: https://github.com/raschke-chainsulting/crowdfunding*
 
 ## Methods
 
