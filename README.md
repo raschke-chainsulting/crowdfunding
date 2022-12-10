@@ -10,6 +10,10 @@ This repository holds crowdfunding Smart Contracts for launching projects and co
 
 Goerli: [0xe8E7405e983FE210539Bc23218627e16B371100E](https://goerli.etherscan.io/address/0xe8E7405e983FE210539Bc23218627e16B371100E#code)
 
+## Code coverage
+
+You can see the overall test coverage for the smart contracts at [here](https://raw.githack.com/raschke-chainsulting/crowdfunding/master/coverage/index.html)
+
 ## Available Scripts
 
 The following scripts are available to interact with this repository. They include compilation, testing, code coverage, documentation generation, deployment and verification of deployed contracts.
