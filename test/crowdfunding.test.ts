@@ -161,6 +161,19 @@ describe("Crowdfunding", function () {
     expect(contribution2).to.equal(ONE_ETHER);
   });
 
+  it("Should fail participate in project with invalid ether amount", async function () {
+    // user 1 creates project
+    await crowdfunding
+      .connect(user1)
+      .createProject("title", "description", ONE_ETHER);
+    // user 2 parisipates in project
+    await expect(
+      crowdfunding
+        .connect(user2)
+        .participateToProject(0, { value: ONE_ETHER.sub(1) })
+    ).to.be.revertedWith("Not enough funds sent");
+  });
+
   it("Should withdraw funds for project by owner", async function () {
     // user 1 creates project
     await crowdfunding
@@ -236,5 +249,17 @@ describe("Crowdfunding", function () {
     await expect(
       crowdfunding.connect(user2).withdrawlFunds(0)
     ).to.be.revertedWith("Only the project owner can call this function");
+  });
+
+  it("Should fail withdrawing with no available funds", async function () {
+    // user 1 creates project
+    await crowdfunding
+      .connect(user1)
+      .createProject("title", "description", ONE_ETHER);
+
+    // should fail withdrawing funds by user 2
+    await expect(
+      crowdfunding.connect(user1).withdrawlFunds(0)
+    ).to.be.revertedWith("No funds to withdraw");
   });
 });
