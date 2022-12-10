@@ -9,10 +9,33 @@ import {ICrowdfunding} from "./ICrowdfunding.sol";
  * @notice This
  */
 contract Crowdfunding is ICrowdfunding {
+    // counter to generate unique project ids
     uint256 private projectIdCounter;
+
+    // array to store all projects
     Project[] private projects;
 
+    // mapping to store all contributions of users to projects
+    // user address => project id => amount of ether contributed
     mapping(address => mapping(uint256 => uint256)) private contributions;
+
+    // modifier to check if the project with the given id exists
+    modifier projectExists(uint256 _projectId) {
+        require(
+            _projectId < projectIdCounter,
+            "Project with given id does not exist"
+        );
+        _;
+    }
+
+    // modifier to check if the caller of a function is the owner of the project
+    modifier onlyProjectOwner(uint256 _projectId) {
+        require(
+            projects[_projectId].owner == msg.sender,
+            "Only the project owner can call this function"
+        );
+        _;
+    }
 
     /**
      * @notice Creates a new crowdfunding project. The caller of this function
@@ -28,6 +51,17 @@ contract Crowdfunding is ICrowdfunding {
         string calldata _description,
         uint256 _participationAmount
     ) external override returns (uint256) {
+        // check if input parameters are valid
+        require(bytes(_title).length > 0, "Title must not be empty");
+        require(
+            bytes(_description).length > 0,
+            "Description must not be empty"
+        );
+        require(
+            _participationAmount > 0,
+            "Participation amount must be greater than 0"
+        );
+
         // create new project and push it to the projects array
         projects.push(
             Project(
@@ -57,7 +91,7 @@ contract Crowdfunding is ICrowdfunding {
      */
     function participateToProject(
         uint256 _projectId
-    ) external payable override {
+    ) external payable override projectExists(_projectId) {
         // check if participation amount is correct
         require(
             msg.value >= projects[_projectId].participationAmount,
@@ -80,7 +114,13 @@ contract Crowdfunding is ICrowdfunding {
      */
     function searchForProject(
         uint256 _projectId
-    ) external view override returns (Project memory) {
+    )
+        external
+        view
+        override
+        projectExists(_projectId)
+        returns (Project memory)
+    {
         return projects[_projectId];
     }
 
@@ -95,7 +135,7 @@ contract Crowdfunding is ICrowdfunding {
     function retrieveContributions(
         address _contributor,
         uint256 _projectId
-    ) external view override returns (uint256) {
+    ) external view override projectExists(_projectId) returns (uint256) {
         return contributions[_contributor][_projectId];
     }
 
@@ -104,12 +144,15 @@ contract Crowdfunding is ICrowdfunding {
      * must be the owner of the project.
      * @param _projectId The id of the project.
      */
-    function withdrawlFunds(uint256 _projectId) external override {
-        // check if caller is the owner of the project
+    function withdrawlFunds(
+        uint256 _projectId
+    ) external override projectExists(_projectId) onlyProjectOwner(_projectId) {
+        // check if there are funds to withdraw
         require(
-            msg.sender == projects[_projectId].owner,
-            "Only the owner can withdraw funds"
+            projects[_projectId].totalFundingAmount > 0,
+            "No funds to withdraw"
         );
+
         // get the amount to withdraw
         uint256 amount = projects[_projectId].totalFundingAmount;
         // reset total funding amount
