@@ -41,6 +41,18 @@ interface ICrowdfunding {
     );
 
     /**
+     * @notice Emitted when the owner of a project withdraws the funds of the project.
+     * @param _projectId The id of the project.
+     * @param _projectOwner The address of the project owner.
+     * @param _amount The amount of ether withdrawn by the project owner.
+     */
+    event FundsWithdrawn(
+        uint256 indexed _projectId,
+        address indexed _projectOwner,
+        uint256 _amount
+    );
+
+    /**
      * @notice Creates a new crowdfunding project. The caller of this function
      * will be the owner of the project.
      * @param _title The title of the project.
@@ -83,7 +95,7 @@ interface ICrowdfunding {
     function retrieveContributions(
         address _contributor,
         uint256 _projectId
-    ) external returns (uint256);
+    ) external view returns (uint256);
 
     /**
      * @notice Withdraws the funds of the project with the given id. The caller
