@@ -73,11 +73,12 @@ contract Crowdfunding is ICrowdfunding {
                 0
             )
         );
-        // increment project id counter
-        projectIdCounter++;
 
         // emit event for the created project
         emit ProjectCreated(projectIdCounter, msg.sender);
+
+        // increment project id counter
+        projectIdCounter++;
 
         // return the id of the created project
         return projectIdCounter - 1;
