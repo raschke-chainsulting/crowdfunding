@@ -29,8 +29,8 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   networks: {
-    sepolia: {
-      url: process.env.SEPOLIA_URL || "",
+    goerli: {
+      url: process.env.GOERLI_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
