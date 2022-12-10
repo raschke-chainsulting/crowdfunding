@@ -13,7 +13,7 @@ interface ICrowdfunding {
         uint256 id;
         string title;
         string description;
-        address owner;
+        address payable owner;
         uint256 participationAmount;
         uint256 totalFundingAmount;
     }
