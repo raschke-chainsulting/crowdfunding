@@ -1,3 +1,7 @@
+[![Lint](https://github.com/raschke-chainsulting/crowdfunding/actions/workflows/lint.yml/badge.svg)](https://github.com/raschke-chainsulting/crowdfunding/actions/workflows/lint.yml)
+[![Build](https://github.com/raschke-chainsulting/crowdfunding/actions/workflows/build.yml/badge.svg)](https://github.com/raschke-chainsulting/crowdfunding/actions/workflows/build.yml)
+[![Tests](https://github.com/raschke-chainsulting/crowdfunding/actions/workflows/tests.yml/badge.svg)](https://github.com/raschke-chainsulting/crowdfunding/actions/workflows/tests.yml)
+
 # Simple crowdfunding contract
 
 This repository holds crowdfunding Smart Contracts for launching projects and collecting funds.
