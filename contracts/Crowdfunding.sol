@@ -6,7 +6,9 @@ import {ICrowdfunding} from "./ICrowdfunding.sol";
 
 /**
  * @title Crowdfunding
- * @notice This
+ * @notice This contract implements a crowdfunding platform. It allows users to
+ * create crowdfunding projects and participate to them. The owner of a project
+ * can withdraw the funds of the project.
  */
 contract Crowdfunding is ICrowdfunding {
     // counter to generate unique project ids
