@@ -1,13 +1,15 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 // eslint-disable-next-line node/no-missing-import
 import { Crowdfunding } from "../typechain";
 
-describe("Crowdfunding", function () {
+describe("Crowdfunding", async function () {
   let crowdfunding: Crowdfunding,
     user1: SignerWithAddress,
-    user2: SignerWithAddress;
+    user2: SignerWithAddress,
+    deadline: number;
 
   const ONE_ETHER = ethers.utils.parseEther("1");
 
@@ -20,6 +22,9 @@ describe("Crowdfunding", function () {
 
     // deploy the contract
     crowdfunding = await Crowdfunding.deploy();
+
+    // get deadline with the current timestmap
+    deadline = (await time.latest()) + 1000;
   });
 
   it("Should fail querying non-existent project", async function () {
@@ -52,27 +57,39 @@ describe("Crowdfunding", function () {
 
   it("Should fail creating project with invalid title", async function () {
     await expect(
-      crowdfunding.createProject("", "description", ONE_ETHER)
+      crowdfunding.createProject("", "description", ONE_ETHER, deadline)
     ).to.be.revertedWith("Title must not be empty");
   });
 
   it("Should fail creating project with invalid description", async function () {
     await expect(
-      crowdfunding.createProject("title", "", ONE_ETHER)
+      crowdfunding.createProject("title", "", ONE_ETHER, deadline)
     ).to.be.revertedWith("Description must not be empty");
   });
 
   it("Should fail creating project with invalid participation amount", async function () {
     await expect(
-      crowdfunding.createProject("title", "description", 0)
+      crowdfunding.createProject("title", "description", 0, deadline)
     ).to.be.revertedWith("Participation amount must be greater than 0");
+  });
+
+  it("Should fail creating project with invalid deadline", async function () {
+    const invalidDeadline = (await time.latest()) - 100;
+    await expect(
+      crowdfunding.createProject(
+        "title",
+        "description",
+        ONE_ETHER,
+        invalidDeadline
+      )
+    ).to.be.revertedWith("Deadline must be in the future");
   });
 
   it("Should create new project", async function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
   });
 
   it("Should emit ProjectCreated on creating a new project", async function () {
@@ -80,17 +97,17 @@ describe("Crowdfunding", function () {
     await expect(
       crowdfunding
         .connect(user1)
-        .createProject("title", "description", ONE_ETHER)
+        .createProject("title", "description", ONE_ETHER, deadline)
     )
       .to.emit(crowdfunding, "ProjectCreated")
-      .withArgs(0, user1.address);
+      .withArgs(0, user1.address, deadline);
   });
 
   it("Should record new project", async function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // check recorded project variables
     const project = await crowdfunding.searchForProject(0);
     expect(project.title).to.equal("title");
@@ -104,7 +121,7 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
@@ -115,7 +132,7 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // check for emitted event with correct parameters
     await expect(
       crowdfunding.connect(user2).participateToProject(0, { value: ONE_ETHER })
@@ -128,7 +145,7 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // check for ether transfer on function call
     await expect(() =>
       crowdfunding.connect(user2).participateToProject(0, { value: ONE_ETHER })
@@ -142,7 +159,7 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
@@ -165,24 +182,45 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
-    // user 2 parisipates in project
+      .createProject("title", "description", ONE_ETHER, deadline);
+    // user 2 parisipates in project with too low amount
     await expect(
       crowdfunding
         .connect(user2)
         .participateToProject(0, { value: ONE_ETHER.sub(1) })
-    ).to.be.revertedWith("Not enough funds sent");
+    ).to.be.revertedWith("Participation amount is incorrect");
+    // user 2 parisipates in project with too high amount
+    await expect(
+      crowdfunding
+        .connect(user2)
+        .participateToProject(0, { value: ONE_ETHER.add(1) })
+    ).to.be.revertedWith("Participation amount is incorrect");
+  });
+
+  it("Should fail participate in project after deadline", async function () {
+    // user 1 creates project
+    await crowdfunding
+      .connect(user1)
+      .createProject("title", "description", ONE_ETHER, deadline);
+    // travel to crowd funding deadline + 100 seconds
+    await time.increaseTo(deadline + 100);
+    // user 2 parisipates in project with too high amount
+    await expect(
+      crowdfunding.connect(user2).participateToProject(0, { value: ONE_ETHER })
+    ).to.be.revertedWith("Deadline has passed");
   });
 
   it("Should withdraw funds for project by owner", async function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
       .participateToProject(0, { value: ONE_ETHER });
+    // travel to deadline + 100 seconds
+    await time.increaseTo(deadline + 100);
     // user 1 withdraws funds
     await crowdfunding.connect(user1).withdrawlFunds(0);
   });
@@ -191,11 +229,13 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
       .participateToProject(0, { value: ONE_ETHER });
+    // travel to deadline + 100 seconds
+    await time.increaseTo(deadline + 100);
     // check for emitted event with correct parameters
     await expect(crowdfunding.connect(user1).withdrawlFunds(0))
       .to.emit(crowdfunding, "FundsWithdrawn")
@@ -206,11 +246,13 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
       .participateToProject(0, { value: ONE_ETHER });
+    // travel to deadline + 100 seconds
+    await time.increaseTo(deadline + 100);
     // check for ether transfer on function call
     await expect(() =>
       crowdfunding.connect(user1).withdrawlFunds(0)
@@ -220,27 +262,44 @@ describe("Crowdfunding", function () {
     );
   });
 
-  it("Should reset collected amount by withdrawing funds", async function () {
+  it("Should fail withdrawing funds before deadlines", async function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
       .participateToProject(0, { value: ONE_ETHER });
     // withdraw funds by user 1
+    await expect(
+      crowdfunding.connect(user1).withdrawlFunds(0)
+    ).to.be.revertedWith("Deadline has not passed yet");
+  });
+
+  it("Should fail withdrawing funds multiple times", async function () {
+    // user 1 creates project
+    await crowdfunding
+      .connect(user1)
+      .createProject("title", "description", ONE_ETHER, deadline);
+    // user 2 parisipates in project
+    await crowdfunding
+      .connect(user2)
+      .participateToProject(0, { value: ONE_ETHER });
+    // travel to deadline + 100 seconds
+    await time.increaseTo(deadline + 100);
+    // withdraw funds by user 1
     await crowdfunding.connect(user1).withdrawlFunds(0);
-    // check for reset recorded project variables
-    const project = await crowdfunding.searchForProject(0);
-    expect(project.totalFundingAmount).to.equal(0);
+    await expect(
+      crowdfunding.connect(user1).withdrawlFunds(0)
+    ).to.be.revertedWith("Funds have already been withdrawn");
   });
 
   it("Should fail withdrawing funds for project by non owner", async function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
+      .createProject("title", "description", ONE_ETHER, deadline);
     // user 2 parisipates in project
     await crowdfunding
       .connect(user2)
@@ -255,8 +314,9 @@ describe("Crowdfunding", function () {
     // user 1 creates project
     await crowdfunding
       .connect(user1)
-      .createProject("title", "description", ONE_ETHER);
-
+      .createProject("title", "description", ONE_ETHER, deadline);
+    // travel to deadline + 100 seconds
+    await time.increaseTo(deadline + 100);
     // should fail withdrawing funds by user 2
     await expect(
       crowdfunding.connect(user1).withdrawlFunds(0)
