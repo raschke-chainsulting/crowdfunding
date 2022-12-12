@@ -8,7 +8,7 @@ This repository holds crowdfunding Smart Contracts for launching projects and co
 
 ## Deployment address
 
-Goerli: [0xe8E7405e983FE210539Bc23218627e16B371100E](https://goerli.etherscan.io/address/0xe8E7405e983FE210539Bc23218627e16B371100E#code)
+Goerli: [0x906D92eDaC9a4C9eD891e9c1230eF93dc149c44D](https://goerli.etherscan.io/address/0x906D92eDaC9a4C9eD891e9c1230eF93dc149c44D#code)
 
 ## Code coverage
 
