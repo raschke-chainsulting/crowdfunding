@@ -60,7 +60,10 @@ npm run lint
 
 ## Deploy smart contracts
 
-You have to write and run deployment scripts to deploy smart contracts to defined networks. To create deployment scripts check out the [hardhat deployment documentation.](https://hardhat.org/hardhat-runner/docs/guides/deploying)
+To deploy the smart contracts set the private key in .env file, fund the account and run:
+```shell
+npx hardhat run --network goerli scripts/deploy.ts
+```
 
 ## Verifying deployed smart contracts
 
